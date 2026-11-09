@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>The Yaha</title>
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'Inter', -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 20px 16px 100px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .app-header {
+            text-align: center;
+            padding: 16px 0 24px;
+        }
+        .app-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+        .app-subtitle {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 24px 0 12px;
+            color: #fff;
+        }
+        .tracks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .track-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #151515;
+            border-radius: 14px;
+            padding: 10px;
+            transition: background 0.2s;
+        }
+        .track-item:active {
+            background: #1f1f1f;
+        }
+        .track-cover {
+            width: 64px;
+            height: 64px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #222;
+        }
+        .track-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .track-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .track-meta {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+        .track-play-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #0071e3;
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .track-play-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        .track-play-btn .icon-pause { display: none; }
+        .track-item.playing .track-play-btn .icon-play { display: none; }
+        .track-item.playing .track-play-btn .icon-pause { display: block; }
+        .explicit-badge {
+            display: inline-block;
+            background: #ff3b30;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .track-progress {
+            height: 3px;
+            background: #333;
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .track-progress-fill {
+            height: 100%;
+            background: #0071e3;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .now-playing {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(20, 20, 20, 0.98);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid #222;
+            padding: 12px 16px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+        }
+        .now-playing.active {
+            display: flex;
+        }
+        .now-playing-cover {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .now-playing-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .now-playing-title {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .now-playing-meta {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+        .now-playing-controls {
+            display: flex;
+            gap: 8px;
+        }
+        .now-playing-controls button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #0071e3;
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .now-playing-controls button svg {
+            width: 18px;
+            height: 18px;
+        }
+        .age-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .age-modal[hidden] { display: none; }
+        .age-modal-content {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 340px;
+            width: 100%;
+            text-align: center;
+        }
+        .age-modal-title {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        .age-modal-text {
+            font-size: 14px;
+            color: #aaa;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        .age-captcha-question {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .age-captcha-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            text-align: center;
+            border-radius: 10px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .age-captcha-error {
+            color: #ff3b30;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .age-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #0071e3;
+            color: #fff;
+        }
+        .btn-ghost {
+            background: #2a2a2a;
+            color: #fff;
+        }
+        .track-item.soon {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <div class="app-logo">THE YAHA</div>
+        <div class="app-subtitle">AI Music Project</div>
+    </div>
+
+    <h2 class="section-title">Релизы</h2>
+    <div class="tracks-list" id="releasesList">
+        <!-- Треки вставляются через JS -->
+    </div>
+
+    <h2 class="section-title">Эксклюзивы 18+</h2>
+    <div class="tracks-list" id="exclusiveList">
+        <!-- Эксклюзивы вставляются через JS -->
+    </div>
+
+    <!-- Нижняя панель "сейчас играет" -->
+    <div class="now-playing" id="nowPlaying">
+        <img class="now-playing-cover" id="npCover" src="" alt="">
+        <div class="now-playing-info">
+            <div class="now-playing-title" id="npTitle">—</div>
+            <div class="now-playing-meta" id="npMeta">The Yaha</div>
+        </div>
+        <div class="now-playing-controls">
+            <button id="npToggle" aria-label="Play/Pause">
+                <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Модальное окно 18+ -->
+    <div class="age-modal" id="ageModal" hidden>
+        <div class="age-modal-content">
+            <h3 class="age-modal-title">Контент 18+</h3>
+            <p class="age-modal-text">Этот трек содержит нецензурную лексику. Подтвердите, что вам есть 18 лет, решив пример:</p>
+            <p class="age-captcha-question" id="captchaQuestion">7 + 4 = ?</p>
+            <input type="number" class="age-captcha-input" id="captchaInput" placeholder="Ответ" autocomplete="off">
+            <p class="age-captcha-error" id="captchaError" hidden>Неверно. Попробуйте снова.</p>
+            <div class="age-modal-actions">
+                <button class="btn btn-primary" id="ageConfirm">Подтвердить</button>
+                <button class="btn btn-ghost" id="ageCancel">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================
+        // Данные треков (пути те же, что на сайте)
+        // ========================
+        const releases = [
+            { title: 'Маски', cover: 'images/maski.jpg', src: 'tracks/maski.mp3', meta: 'The Yaha · 2026' },
+            { title: 'Дама Пик', cover: 'images/damapik.jpg', src: 'tracks/damapik.mp3', meta: 'The Yaha · 2026' },
+            { title: '159', cover: 'images/159.jpg', src: null, meta: 'The Yaha · 2026', soon: true }
+        ];
+
+        const exclusives = [
+            { title: 'Свет от экрана', cover: 'images/svetotekrany.jpg', src: 'tracks/svetotekrany.mp3', meta: 'The Yaha · 2026', explicit: false },
+            { title: 'Мак', cover: 'images/mac.jpg', src: 'tracks/mac.mp3', meta: 'The Yaha · 2026', explicit: true },
+            { title: 'Снова в игре', cover: 'images/snovavigre.jpg', src: 'tracks/snovavigre.mp3', meta: 'The Yaha · 2026', explicit: true },
+            { title: 'Третий час', cover: 'images/tretiychas.jpg', src: 'tracks/tretiychas.mp3', meta: 'The Yaha · 2026', explicit: true }
+        ];
+
+        // ========================
+        // Состояние
+        // ========================
+        let currentAudio = null;
+        let currentTrackEl = null;
+        let currentData = null;
+        const isAdultConfirmed = () => localStorage.getItem('yaha_adult') === 'yes';
+
+        // ========================
+        // Рендер списка
+        // ========================
+        function renderTrack(data, container, index, isExclusive) {
+            const item = document.createElement('div');
+            item.className = 'track-item' + (data.soon ? ' soon' : '');
+            item.dataset.index = index;
+            item.dataset.exclusive = isExclusive ? '1' : '0';
+
+            const explicitBadge = data.explicit ? '<span class="explicit-badge">18+</span>' : '';
+
+            item.innerHTML = `
+                <img class="track-cover" src="${data.cover}" alt="${data.title}" loading="lazy">
+                <div class="track-info">
+                    <div class="track-title">${data.title}${explicitBadge}</div>
+                    <div class="track-meta">${data.meta}</div>
+                    ${data.soon ? '' : '<div class="track-progress"><div class="track-progress-fill"></div></div>'}
+                </div>
+                ${data.soon ? '' : `
+                <button class="track-play-btn" aria-label="Play">
+                    <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+                </button>`}
+            `;
+
+            if (!data.soon) {
+                const btn = item.querySelector('.track-play-btn');
+                btn.addEventListener('click', () => {
+                    if (data.explicit && !isAdultConfirmed() && (!currentAudio || currentAudio.paused)) {
+                        openAgeModal(data, item);
+                        return;
+                    }
+                    if (currentTrackEl === item && currentAudio && !currentAudio.paused) {
+                        currentAudio.pause();
+                    } else {
+                        playTrack(data, item);
+                    }
+                });
+            }
+
+            container.appendChild(item);
+            return item;
+        }
+
+        const releasesList = document.getElementById('releasesList');
+        const exclusiveList = document.getElementById('exclusiveList');
+        releases.forEach((d, i) => renderTrack(d, releasesList, i, false));
+        exclusives.forEach((d, i) => renderTrack(d, exclusiveList, i, true));
+
+        // ========================
+        // Плеер
+        // ========================
+        function playTrack(data, item) {
+            // Останавливаем предыдущий
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+
+            // Если это тот же трек — возобновляем
+            if (currentTrackEl === item && currentAudio && currentAudio.src.endsWith(data.src)) {
+                currentAudio.play();
+                return;
+            }
+
+            // Создаём новый audio
+            const audio = new Audio(data.src);
+            currentAudio = audio;
+            currentTrackEl = item;
+            currentData = data;
+
+            // Обновляем UI
+            document.querySelectorAll('.track-item').forEach(el => el.classList.remove('playing'));
+            item.classList.add('playing');
+
+            // Запускаем
+            audio.play().catch(err => console.warn('Play failed:', err));
+
+            // События
+            audio.addEventListener('play', () => {
+                item.classList.add('playing');
+                updateNowPlaying(data, true);
+                setupMediaSession(data, audio);
+            });
+
+            audio.addEventListener('pause', () => {
+                item.classList.remove('playing');
+                updateNowPlaying(data, false);
+            });
+
+            audio.addEventListener('timeupdate', () => {
+                const fill = item.querySelector('.track-progress-fill');
+                if (fill) {
+                    const pct = (audio.currentTime / audio.duration) * 100 || 0;
+                    fill.style.width = pct + '%';
+                }
+            });
+
+            audio.addEventListener('ended', () => {
+                item.classList.remove('playing');
+                updateNowPlaying(data, false);
+            });
+
+            updateNowPlaying(data, true);
+        }
+
+        // ========================
+        // Нижняя панель "сейчас играет"
+        // ========================
+        const nowPlaying = document.getElementById('nowPlaying');
+        const npCover = document.getElementById('npCover');
+        const npTitle = document.getElementById('npTitle');
+        const npMeta = document.getElementById('npMeta');
+        const npToggle = document.getElementById('npToggle');
+
+        function updateNowPlaying(data, isPlaying) {
+            nowPlaying.classList.add('active');
+            npCover.src = data.cover;
+            npTitle.textContent = data.title;
+            npMeta.textContent = data.meta;
+            const playIcon = npToggle.querySelector('.icon-play');
+            const pauseIcon = npToggle.querySelector('.icon-pause');
+            if (isPlaying) {
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+            } else {
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            }
+        }
+
+        npToggle.addEventListener('click', () => {
+            if (!currentAudio) return;
+            if (currentAudio.paused) {
+                currentAudio.play();
+            } else {
+                currentAudio.pause();
+            }
+        });
+
+        // ========================
+        // Media Session (управление с экрана блокировки)
+        // ========================
+        function setupMediaSession(data, audio) {
+            if (!('mediaSession' in navigator)) return;
+
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: data.title,
+                artist: 'The Yaha',
+                album: 'AI Music Project',
+                artwork: [
+                    { src: data.cover, sizes: '512x512', type: 'image/jpeg' }
+                ]
+            });
+
+            navigator.mediaSession.setActionHandler('play', () => audio.play());
+            navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+            navigator.mediaSession.setActionHandler('seekto', (details) => {
+                if (details.seekTime !== undefined) audio.currentTime = details.seekTime;
+            });
+        }
+
+        // ========================
+        // Капча 18+
+        // ========================
+        const ageModal = document.getElementById('ageModal');
+        const ageConfirm = document.getElementById('ageConfirm');
+        const ageCancel = document.getElementById('ageCancel');
+        const captchaQuestion = document.getElementById('captchaQuestion');
+        const captchaInput = document.getElementById('captchaInput');
+        const captchaError = document.getElementById('captchaError');
+
+        let pendingData = null;
+        let pendingItem = null;
+        let captchaAnswer = 0;
+
+        function generateCaptcha() {
+            const a = Math.floor(Math.random() * 10) + 1;
+            const b = Math.floor(Math.random() * 10) + 1;
+            captchaAnswer = a + b;
+            captchaQuestion.textContent = `${a} + ${b} = ?`;
+            captchaInput.value = '';
+            captchaError.hidden = true;
+        }
+
+        function openAgeModal(data, item) {
+            pendingData = data;
+            pendingItem = item;
+            generateCaptcha();
+            ageModal.hidden = false;
+            setTimeout(() => captchaInput.focus(), 100);
+        }
+
+        ageConfirm.addEventListener('click', () => {
+            const userAnswer = parseInt(captchaInput.value, 10);
+            if (userAnswer !== captchaAnswer) {
+                captchaError.hidden = false;
+                generateCaptcha();
+                return;
+            }
+            localStorage.setItem('yaha_adult', 'yes');
+            ageModal.hidden = true;
+            if (pendingData && pendingItem) {
+                playTrack(pendingData, pendingItem);
+            }
+            pendingData = null;
+            pendingItem = null;
+        });
+
+        captchaInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') ageConfirm.click();
+        });
+
+        ageCancel.addEventListener('click', () => {
+            ageModal.hidden = true;
+            pendingData = null;
+            pendingItem = null;
+        });
+
+        // ========================
+        // Service Worker (для PWA/APK)
+        // ========================
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+        }
+    </script>
+
+</body>
+</html>
