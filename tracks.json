@@ -1,0 +1,7 @@
+[
+  { "id": "krasnypamad",  "title": "Красная помада",  "cover": "images/krasnypamad.jpg",  "src": "tracks/krasnypamad.mp3",  "explicit": false, "isNew": true, "year": 2026 },
+  { "id": "svetotekrany", "title": "Свет от экрана",  "cover": "images/svetotekrany.jpg", "src": "tracks/svetotekrany.mp3", "explicit": false, "year": 2026 },
+  { "id": "mac",          "title": "Мак",             "cover": "images/mac.jpg",          "src": "tracks/mac.mp3",          "explicit": true,  "year": 2026 },
+  { "id": "snovavigre",   "title": "Снова в игре",    "cover": "images/snovavigre.jpg",   "src": "tracks/snovavigre.mp3",   "explicit": true,  "year": 2026 },
+  { "id": "tretiychas",   "title": "Третий час",      "cover": "images/tretiychas.jpg",   "src": "tracks/tretiychas.mp3",   "explicit": true,  "year": 2026 }
+]
